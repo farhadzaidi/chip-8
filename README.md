@@ -1,0 +1,1 @@
+# Emulator for the CHIP-8 interpreter (written in C)

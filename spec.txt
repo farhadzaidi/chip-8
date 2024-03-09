@@ -1,0 +1,26 @@
+
+-----------------------------------------
+|										|
+----------------- CHIP-8 ----------------
+|										|
+-----------------------------------------
+
+Registers
+	- 8-bit general purpose registers (V0-VF)
+	- 8-bit delay timer (DT) 
+	- 8-bit sound timer (ST)
+	- 16-bit program counter (PC)
+	- 16-bit index register (I)
+	- 16-bit stack pointer (SP)
+
+Memory
+	- 4 KB (4096 bytes)
+	- 0x000-0x1FF is reserved for interpreter (ROM)
+		- Fonts are stored at 0x000-0x080
+	- 0x200-0xFFF is RAM
+		- Programs are loaded in at 0x200
+		- 0xF00-0xFFF is reserved for the frame buffer (still RAM)
+
+Stack
+	- Stack size is 64 bytes (16 levels of nesting)
+	- The stack will be stored outside of emulated memory
