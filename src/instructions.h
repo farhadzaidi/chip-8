@@ -5,6 +5,12 @@
 
 typedef struct Chip8 Chip8;
 
+uint8_t get_x(uint16_t instr);
+uint8_t get_y(uint16_t instr);
+uint8_t get_n(uint16_t instr);
+uint8_t get_nn(uint16_t instr);
+uint16_t get_nnn(uint16_t instr);
+
 void cls(Chip8 *c, uint16_t instr);
 void ret(Chip8 *c, uint16_t instr);
 void jmp_nnn(Chip8 *c, uint16_t instr);

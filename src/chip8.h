@@ -25,9 +25,22 @@
 #define MEM_SIZE 4096
 #define STACK_SIZE 16
 
+// Used to set speed of emulation
 #define INSTR_PER_SEC 700
 
+#define OPCODE_MASK 0xF000
+#define X_MASK 0x0F00
+#define Y_MASK 0x00F0
+#define N_MASK 0x000F
+#define NN_MASK 0x00FF
+#define NNN_MASK 0x0FFF
+
+#define MSB_8 0x80
+#define MSB_16 0x8000
+
 typedef struct Chip8 Chip8;
+
+static const char HEX[] = "0123456789ABCDEF";
 
 static const uint8_t FONTSET[FONTSET_SIZE] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -61,14 +74,16 @@ struct Chip8 {
 };
 
 void init_sys(Chip8 *c);
-void read_rom(Chip8 *c, char *file_path);
+void load_rom(Chip8 *c, char *file_path);
 uint16_t fetch_instr(Chip8 *c);
 void decd_and_exec_instr(Chip8 *c, uint16_t instr);
 
-void st_push(Chip8 *c, uint16_t val);
-uint16_t st_pop(Chip8 *c);
+// void st_push(Chip8 *c, uint16_t val);
+// uint16_t st_pop(Chip8 *c);
 
+void show_registers(Chip8 *c);
 void show_mem(Chip8 *c);
 void show_mem_snip(Chip8 *c, uint16_t start_addr, uint16_t end_addr);
+void show_stack(Chip8 *c);
 
 #endif
