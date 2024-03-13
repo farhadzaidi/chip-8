@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "chip8.h"
 #include "instructions.h"
 
 void init_sys(Chip8 *c) {
-	// Reset system (set all registers/memory locations to 0)	
 	c->DT = 0;
 	c->ST = 0;
-	c->PC = 0;
-	c->I = 0;
-	c->SP = 0;
+	c->I = RAM_START_ADDR;
+	c->PC = RAM_START_ADDR;
+	c->SP = STACK_START_ADDR;
 
 	for (int i = 0; i < NUM_V_REGISTERS; i++) {
 		c->V[i] = 0;
@@ -25,22 +25,25 @@ void init_sys(Chip8 *c) {
 		c->mem[i + FONTSET_START_ADDR] = FONTSET[i];
 	}
 
-	// Initialize PC and SP
-	c->PC = RAM_START_ADDR;
-	c->SP = -1;
+	srand(time(NULL));
+
+	c->is_running = 1;
+	c->key_down = -1;
+	c->start_wait = 0;
+	c->end_wait = 0;
 }
 
 void load_rom(Chip8 *c, char *file_path) {
 	FILE *f = fopen(file_path, "rb");
 	if (f == NULL) {
-		printf("ERROR: Unable to open file with path '%s'.", file_path);
+		printf("ERROR: Unable to open file with path '%s'.\n", file_path);
 		exit(EXIT_FAILURE);
 	}
 
 	size_t bytes_read = fread(&c->mem[RAM_START_ADDR], 1, 
 		MEM_SIZE - RAM_START_ADDR, f);
 	if (bytes_read == 0) {
-		printf("ERROR:Unable to read file.");
+		printf("ERROR:Unable to read file.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -61,14 +64,14 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 	switch(opcode) {
 		case 0x0000:
 			switch(nn) {
-				case 0x00:
-					cls(c, instr);
-					break;
 				case 0xE0:
-					ret(c, instr);
+					cls(c);
+					break;
+				case 0xEE:
+					ret(c);
 					break;
 				default:
-					printf("Invalid instruction 0x%04x.\n", instr);
+					printf("ERROR: Invalid instruction 0x%04x.\n", instr);
 					exit(EXIT_FAILURE);
 			}
 			break;
@@ -99,13 +102,13 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 					ld_Vx_Vy(c, instr);
 					break;
 				case 0x1:
-					or(c, instr);
+					bor(c, instr);
 					break;
 				case 0x2:
-					and(c, instr);
+					band(c, instr);
 					break;
 				case 0x3:
-					xor(c, instr);
+					bxor(c, instr);
 					break;
 				case 0x4:
 					add_Vx_Vy(c, instr);
@@ -123,7 +126,7 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 					shl(c, instr);
 					break;
 				default:
-					printf("Invalid instruction 0x%04x.\n", instr);
+					printf("ERROR: Invalid instruction 0x%04x.\n", instr);
 					exit(EXIT_FAILURE);
 			}
 			break;
@@ -151,7 +154,7 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 					skpn(c, instr);
 					break;
 				default:
-					printf("Invalid instruction 0x%04x.\n", instr);
+					printf("ERROR: Invalid instruction 0x%04x.\n", instr);
 					exit(EXIT_FAILURE);
 			}
 			break;
@@ -185,34 +188,59 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 					ld_V_from_mem(c, instr);
 					break;
 				default:
-					printf("Invalid instruction 0x%04x.\n", instr);
+					printf("ERROR: Invalid instruction 0x%04x.\n", instr);
 					exit(EXIT_FAILURE);
 			}
 			break;
 	}
+
+	// Ensure that the key press is reset
+	c->key_down = -1;
 }
 
-// void st_push(Chip8 *c, uint16_t val) {
-// 	c->SP++;
-// 	if (c->SP >= 16) {
-// 		printf("ERROR: Stack overflow.");
-// 		exit(EXIT_FAILURE);
-// 	}
-
-// 	c->stack[c->SP] = val;
-// }
-
-// uint16_t st_pop(Chip8 *c) {
-// 	if (c->SP < 0) {
-// 		printf("ERROR: Cannot pop from empty stack.");
-// 		exit(EXIT_FAILURE);
-// 	}
-
-// 	uint16_t res = c->stack[c->SP];
-// 	c->SP--;
-// 	return res;
-// }
-
+// Layout:
+// 1  2  3  C
+// 4  5  6  D
+// 7  8  9  E
+// A  0  B  F
+int get_key_from_scancode(int sc) {
+	switch(sc) {
+		case 30:
+			return 0x1;
+		case 31:
+			return 0x2;
+		case 32:
+			return 0x3;
+		case 33:
+			return 0xC;
+		case 20:
+			return 0x4;
+		case 26:
+			return 0x5;
+		case 8:
+			return 0x6;
+		case 21:
+			return 0xD;
+		case 4:
+			return 0x7;
+		case 22:
+			return 0x8;
+		case 7:
+			return 0x9;
+		case 9:
+			return 0xE;
+		case 29:
+			return 0xA;
+		case 27:
+			return 0x0;
+		case 6:
+			return 0xB;
+		case 25:
+			return 0xF;
+		default:
+			return -1;
+	}
+}
 
 // The following are a set of functions that display the state of the emulator
 // in the console for debugging.
@@ -226,23 +254,30 @@ void show_registers(Chip8 *c) {
 	printf("ST: %hhu\n", c->ST);
 
 	printf("\nI:  0x%03x\n", c->I);
-	printf("PC: 0x%03x\n\n", c->PC);
-}
-
-void show_mem(Chip8 *c) {
-	show_mem_snip(c, MEM_START_ADDR, MEM_END_ADDR);
+	printf("PC: 0x%03x\n", c->PC);
+	printf("SP: 0x%03x\n", c->SP);
 }
 
 // Displays the contents of memory in the range [start_addr, end_addr]
-void show_mem_snip(Chip8 *c, uint16_t start_addr, uint16_t end_addr) {
+void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size) {
 	if (end_addr < start_addr) {
 		printf("ERROR: Unable to display memory. start_addr (%0x) > end_addr (%u).\n",
 			start_addr, end_addr);
+		exit(EXIT_FAILURE);
+	} else if(chunk_size < 1 || chunk_size > 256) {
+		printf("ERROR: Chunk size must be in range [1, 256].\n");
 		exit(EXIT_FAILURE);
 	}
 
 	int cnt = 0;
 	for (int i = start_addr; i <= end_addr; i++) {
+		if (cnt % (16 * chunk_size) == 0) {
+			printf("\n\n    ");
+			for (int i = 0; i < 16; i++) {
+				printf("    %c", HEX[i]);
+			}
+		}
+
 		if (cnt % 16 == 0) {
 			printf("\n0x%03x: ", i);
 		}

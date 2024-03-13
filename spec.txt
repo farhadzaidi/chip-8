@@ -1,9 +1,7 @@
 
------------------------------------------
-|										|
------------------ CHIP-8 ----------------
-|										|
------------------------------------------
+------------------
+----- CHIP-8 -----
+------------------
 
 Registers
 	- 8-bit general purpose registers (V0-VF)
@@ -16,11 +14,27 @@ Registers
 Memory
 	- 4 KB (4096 bytes)
 	- 0x000-0x1FF is reserved for interpreter (ROM)
-		- Fonts are stored at 0x000-0x080
+		- Fonts are stored at 0x000-0x04F
+		- The frame buffer is stored at 0x050-0x14F
+		- The stack is stored at 0x150-0x18F (32 levels)
 	- 0x200-0xFFF is RAM
-		- Programs are loaded in at 0x200
-		- 0xF00-0xFFF is reserved for the frame buffer (still RAM)
+		- Programs (ROMS) are loaded in at 0x200
+		- "ROMS" can modify themselves (since they are located in RAM)
 
-Stack
-	- Stack size is 64 bytes (16 levels of nesting)
-	- The stack will be stored outside of emulated memory
+Debugger
+	- Set breakpoints (execute normally until breakpoint)
+	- Step through instructions (one-by-one or specified amount)
+		- Stop prematurely if wait instruction encountered
+	- Show memory/registers and display after current instruction execution
+	- Can step backward (one-by-one or specified amount)
+		- Need to save memory at each instruction
+	- Highlight memory/register changes after each instruction execution
+	- Highlight:
+		- ROM
+		- Fonts
+		- Stack
+		- Frame Buffer
+		- PC
+		- SP
+		- I
+	(Maybe) Display instruction name and arguments at each

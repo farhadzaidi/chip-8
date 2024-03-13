@@ -14,19 +14,19 @@
 #define FONTSET_START_ADDR 0x000
 #define FONTSET_END_ADDR 0x04F
 
+#define FRAME_BUFFER_START_ADDR 0x050
+#define FRAME_BUFFER_END_ADDR 0x14F
+
+#define STACK_START_ADDR 0x150
+#define STACK_END_ADDR 0x18F
+
 #define RAM_START_ADDR 0x200
 #define RAM_END_ADDR 0xFFF
-
-#define FRAME_BUFFER_START_ADDR 0xF00
-#define FRAME_BUFFER_END_ADDR 0xFFF
 
 #define FONTSET_SIZE 80
 #define NUM_V_REGISTERS 16
 #define MEM_SIZE 4096
-#define STACK_SIZE 16
-
-// Used to set speed of emulation
-#define INSTR_PER_SEC 700
+#define STACK_SIZE 32
 
 #define OPCODE_MASK 0xF000
 #define X_MASK 0x0F00
@@ -35,8 +35,9 @@
 #define NN_MASK 0x00FF
 #define NNN_MASK 0x0FFF
 
-#define MSB_8 0x80
-#define MSB_16 0x8000
+#define MS_BIT_8 0x80
+#define MS_BYTE_16 0xFF00
+#define LS_BYTE_16 0x00FF
 
 typedef struct Chip8 Chip8;
 
@@ -65,25 +66,27 @@ struct Chip8 {
 	uint8_t V[NUM_V_REGISTERS];
 	uint8_t DT;
 	uint8_t ST;
+
 	uint16_t PC;
 	uint16_t I;
 	uint16_t SP;
 
 	uint8_t mem[MEM_SIZE];
-	uint16_t stack[STACK_SIZE];
+
+	int is_running;
+	int key_down;
+	int start_wait;
+	int end_wait;
 };
 
 void init_sys(Chip8 *c);
 void load_rom(Chip8 *c, char *file_path);
 uint16_t fetch_instr(Chip8 *c);
 void decd_and_exec_instr(Chip8 *c, uint16_t instr);
-
-// void st_push(Chip8 *c, uint16_t val);
-// uint16_t st_pop(Chip8 *c);
+int get_key_from_scancode(int sc);
 
 void show_registers(Chip8 *c);
-void show_mem(Chip8 *c);
-void show_mem_snip(Chip8 *c, uint16_t start_addr, uint16_t end_addr);
+void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size);
 void show_stack(Chip8 *c);
 
 #endif
