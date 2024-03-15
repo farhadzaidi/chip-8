@@ -361,6 +361,7 @@ void ld_I_b(Chip8 *c, uint16_t instr) {
     c->mem[c->I + 2] = Vx;
 }
 
+// Load into I, I + 1, ... I + x the values from registers V0, V1, ... Vx
 void ld_I_from_reg(Chip8 *c, uint16_t instr) {
     uint8_t x = get_x(instr);
     for (int i = 0; i <= x; i++) {
@@ -368,6 +369,7 @@ void ld_I_from_reg(Chip8 *c, uint16_t instr) {
     }
 }
 
+// Load into V0, V1, ... Vx the values from memory locations I, I + 1, ... I + x
 void ld_V_from_mem(Chip8 *c, uint16_t instr) {
     uint8_t x = get_x(instr);
     for (int i = 0; i <= x; i++) {

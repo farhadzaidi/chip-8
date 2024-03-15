@@ -7,6 +7,7 @@
 #include "chip8.h"
 #include "instructions.h"
 #include "screen.h"
+#include "sound.h"
 
 int main() {
 	// The user can pick from one of 6 included ROMS or load a custom ROM.
@@ -39,7 +40,7 @@ int main() {
 	switch(rom) {
 		case 1:
 			strcpy(rom_path, "../roms/breakout.ch8");
-			cpu_clock_rate = 1080;
+			cpu_clock_rate = 720;
 			break;
 		case 2:
 			strcpy(rom_path, "../roms/connect-4.ch8");
@@ -80,25 +81,36 @@ int main() {
 	const int TIMER_UPDATE_CYCLES = cpu_clock_rate / 60;
 
 	load_rom(&c, rom_path);
-	printf("\nLoad ROM successful.\n");
 
-	// Initialize display
+	// Initialize display and sound system
 	SDL_Window *window = NULL;
 	SDL_Renderer *renderer = NULL;
 	init_screen(&window, &renderer);
-	printf("Initialize window successful.\n");
+	init_sound();
 
 	SDL_Event e;
 	SDL_Scancode sc;
 	int cycles_since_timer_update = 0;
 
 	// Main loop
-	printf("Running emulator...\n");
+	printf("\nRunning emulator... (Press [ESC] to reset)\n");
 	while (c.is_running) {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				c.is_running = 0;
+			} else if (e.type == SDL_KEYDOWN) {
+				if (e.key.keysym.sym == SDLK_ESCAPE) {
+					init_sys(&c);
+					load_rom(&c, rom_path);
+					update_screen(&c, &renderer);
+				}
 			}
+		}
+
+		if (c.ST > 0) {
+			play_sound();
+		} else {
+			pause_sound();
 		}
 
 		// Get the currently pressed key
@@ -150,6 +162,10 @@ int main() {
 		}
 	}
 
+	// Clean up
 	close_screen(&window, &renderer);
+	close_sound();
+	SDL_Quit();
+
 	return EXIT_SUCCESS;
 }

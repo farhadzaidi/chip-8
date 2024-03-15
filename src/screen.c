@@ -1,19 +1,27 @@
-
 #include "screen.h"
 
 #define WINDOW_WIDTH 64
 #define WINDOW_HEIGHT 32
 #define WINDOW_SCALE 10
 
+#define ON_R 50
+#define ON_G 160
+#define ON_B 130
+
+#define OFF_R 40
+#define OFF_G 40
+#define OFF_B 40
+
 void init_screen(SDL_Window **window, SDL_Renderer **renderer) {
-		SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO);
 
-		SDL_CreateWindowAndRenderer(WINDOW_WIDTH * WINDOW_SCALE,
-			WINDOW_HEIGHT * WINDOW_SCALE, 0, window, renderer);
-		SDL_RenderSetScale(*renderer, WINDOW_SCALE, WINDOW_SCALE);
+	SDL_CreateWindowAndRenderer(WINDOW_WIDTH * WINDOW_SCALE,
+		WINDOW_HEIGHT * WINDOW_SCALE, 0, window, renderer);
+	SDL_RenderSetScale(*renderer, WINDOW_SCALE, WINDOW_SCALE);
+	SDL_SetWindowTitle(*window, "CHIP-8");
 
-		SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255);
-		SDL_RenderClear(*renderer);
+	SDL_SetRenderDrawColor(*renderer, OFF_R, OFF_G, OFF_B, 255);
+	SDL_RenderClear(*renderer);
 }
 
 // Updates the SDL window/renderer based on the contents of the frame buffer.
@@ -39,9 +47,9 @@ void update_screen(Chip8 *c, SDL_Renderer **renderer) {
 			byte <<= 1;
 
 			if (pixel) {
-				SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255);
+				SDL_SetRenderDrawColor(*renderer, ON_R, ON_G, ON_B, 255);
 			} else {
-				SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255);
+				SDL_SetRenderDrawColor(*renderer, OFF_R, OFF_G, OFF_B, 255);
 			}
 
 			// The exact column of the bit/pixel can be computed as follows
@@ -55,5 +63,4 @@ void update_screen(Chip8 *c, SDL_Renderer **renderer) {
 void close_screen(SDL_Window **window, SDL_Renderer **renderer) {
 	SDL_DestroyRenderer(*renderer);
 	SDL_DestroyWindow(*window);
-	SDL_Quit();
 }

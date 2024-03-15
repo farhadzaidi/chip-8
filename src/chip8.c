@@ -5,6 +5,7 @@
 #include "chip8.h"
 #include "instructions.h"
 
+// Initialize/reset the emulator state
 void init_sys(Chip8 *c) {
 	c->DT = 0;
 	c->ST = 0;
@@ -196,11 +197,35 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 	}
 }
 
-// Layout:
-// 1  2  3  C
-// 4  5  6  D
-// 7  8  9  E
-// A  0  B  F
+
+/*
+
+--- CONTROLLER LAYOUT ---
+1  2  3  C
+4  5  6  D
+7  8  9  E
+A  0  B  F
+
+--- MAPPING (QWERTY) ----
+1 --> 1
+2 --> 2
+3 --> 3
+4 --> C
+Q --> 4
+W --> 5
+E --> 6
+R --> D
+A --> 7
+S --> 8
+D --> 9
+F --> E
+Z --> A
+X --> 0
+C --> B
+V --> F
+
+*/
+
 int get_key_from_scancode(int sc) {
 	switch(sc) {
 		case 30:
@@ -238,61 +263,4 @@ int get_key_from_scancode(int sc) {
 		default:
 			return -1;
 	}
-}
-
-// The following are a set of functions that display the state of the emulator
-// in the console for debugging.
-
-void show_registers(Chip8 *c) {
-	printf("\n| ");
-	for (int i = 0; i < NUM_V_REGISTERS; i++) {
-		printf("V%c: %hhu | ", HEX[i], c->V[i]);
-	}
-
-	printf("\n\n| DT: %hhu | ", c->DT);
-	printf("ST: %hhu |\n", c->ST);
-
-	printf("\n| I: 0x%03x | ", c->I);
-	printf("PC: 0x%03x | ", c->PC);
-	printf("SP: 0x%03x |\n", c->SP);
-}
-
-// Displays the contents of memory in the range [start_addr, end_addr]
-void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size) {
-	if (end_addr < start_addr) {
-		start_addr = 0x000; 
-	}
-	// if (end_addr < start_addr) {
-	// 	printf("ERROR: Unable to display memory. start_addr (%0x) > end_addr (%u).\n",
-	// 		start_addr, end_addr);
-	// 	exit(EXIT_FAILURE);
-	// } else if(chunk_size < 1 || chunk_size > 256) {
-	// 	printf("ERROR: Chunk size must be in range [1, 256].\n");
-	// 	exit(EXIT_FAILURE);
-	// }
-
-	int cnt = 0;
-	for (int i = start_addr; i <= end_addr; i++) {
-		if (cnt % (16 * chunk_size) == 0) {
-			printf("\n    ");
-			for (int i = 0; i < 16; i++) {
-				printf("    %c", HEX[i]);
-			}
-		}
-
-		if (cnt % 16 == 0) {
-			printf("\n0x%03x: ", i);
-		}
-
-		printf("0x%02x ", c->mem[i]);
-		cnt++;
-	}
-
-	printf("\n");
-}
-
-void show_mem_near_addr(Chip8* c, uint16_t addr) {
-	int start = addr - 16 - addr % 16;
-	int end = addr + 31 - addr % 16;
-	show_mem(c, start, end, 5);
 }
