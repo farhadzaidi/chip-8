@@ -230,6 +230,7 @@ void drw(Chip8 *c, uint16_t instr) {
     uint8_t y = get_y(instr);
     uint8_t n = get_n(instr);
 
+    // Reset VF to 0
     c->V[0xF] = 0;
 
     int x_coord = c->V[x];
@@ -238,10 +239,21 @@ void drw(Chip8 *c, uint16_t instr) {
     for (int i = 0; i < n; i++) {
         uint8_t sprite = c->mem[c->I + i];
 
+        // The address of the byte (in the frame buffer) to change can be
+        // computed from the x and y coordinates. We can also compute the exact
+        // pixel offset by taking modulo 8 of the x coordinate.
         uint16_t y_offset = (y_coord + i) * 8; // byte offset
         uint16_t x_byte_offset = x_coord / 8;
         uint16_t x_pixel_offset = x_coord % 8;
         uint16_t byte_addr = FRAME_BUFFER_START_ADDR + y_offset + x_byte_offset;
+
+        // The position of the sprite is not guaranteed to be at the start of
+        // the byte. And since sprites are one byte in width, the width of a
+        // sprite can span two bytes in the frame buffer.
+        // Therefore, we need to apply the following operation twice, once to
+        // the byte at byte_addr and once to the byte following it.
+        // Additionally, we need to compute which of the 8 bits of the sprite
+        // affect the first byte, and which of them affect the second byte.
 
         uint8_t sprite_mask = sprite >> x_pixel_offset;
         uint8_t *frame_byte = &c->mem[byte_addr];
@@ -273,6 +285,7 @@ void drw(Chip8 *c, uint16_t instr) {
         }
     }
 
+    // Set update screen flag
     c->update_screen = 1;
 }
 
