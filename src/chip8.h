@@ -35,10 +35,6 @@
 #define NN_MASK 0x00FF
 #define NNN_MASK 0x0FFF
 
-#define MS_BIT_8 0x80
-#define MS_BYTE_16 0xFF00
-#define LS_BYTE_16 0x00FF
-
 typedef struct Chip8 Chip8;
 
 static const char HEX[] = "0123456789ABCDEF";
@@ -77,6 +73,7 @@ struct Chip8 {
 	int key_down;
 	int start_wait;
 	int end_wait;
+	int update_screen;
 };
 
 void init_sys(Chip8 *c);
@@ -84,9 +81,5 @@ void load_rom(Chip8 *c, char *file_path);
 uint16_t fetch_instr(Chip8 *c);
 void decd_and_exec_instr(Chip8 *c, uint16_t instr);
 int get_key_from_scancode(int sc);
-
-void show_registers(Chip8 *c);
-void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size);
-void show_stack(Chip8 *c);
 
 #endif

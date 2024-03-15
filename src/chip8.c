@@ -31,6 +31,7 @@ void init_sys(Chip8 *c) {
 	c->key_down = -1;
 	c->start_wait = 0;
 	c->end_wait = 0;
+	c->update_screen = 0;
 }
 
 void load_rom(Chip8 *c, char *file_path) {
@@ -193,9 +194,6 @@ void decd_and_exec_instr(Chip8 *c, uint16_t instr) {
 			}
 			break;
 	}
-
-	// Ensure that the key press is reset
-	c->key_down = -1;
 }
 
 // Layout:
@@ -246,33 +244,37 @@ int get_key_from_scancode(int sc) {
 // in the console for debugging.
 
 void show_registers(Chip8 *c) {
+	printf("\n| ");
 	for (int i = 0; i < NUM_V_REGISTERS; i++) {
-		printf("\nV%c: %hhu", HEX[i], c->V[i]);
+		printf("V%c: %hhu | ", HEX[i], c->V[i]);
 	}
 
-	printf("\n\nDT: %hhu\n", c->DT);
-	printf("ST: %hhu\n", c->ST);
+	printf("\n\n| DT: %hhu | ", c->DT);
+	printf("ST: %hhu |\n", c->ST);
 
-	printf("\nI:  0x%03x\n", c->I);
-	printf("PC: 0x%03x\n", c->PC);
-	printf("SP: 0x%03x\n", c->SP);
+	printf("\n| I: 0x%03x | ", c->I);
+	printf("PC: 0x%03x | ", c->PC);
+	printf("SP: 0x%03x |\n", c->SP);
 }
 
 // Displays the contents of memory in the range [start_addr, end_addr]
 void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size) {
 	if (end_addr < start_addr) {
-		printf("ERROR: Unable to display memory. start_addr (%0x) > end_addr (%u).\n",
-			start_addr, end_addr);
-		exit(EXIT_FAILURE);
-	} else if(chunk_size < 1 || chunk_size > 256) {
-		printf("ERROR: Chunk size must be in range [1, 256].\n");
-		exit(EXIT_FAILURE);
+		start_addr = 0x000; 
 	}
+	// if (end_addr < start_addr) {
+	// 	printf("ERROR: Unable to display memory. start_addr (%0x) > end_addr (%u).\n",
+	// 		start_addr, end_addr);
+	// 	exit(EXIT_FAILURE);
+	// } else if(chunk_size < 1 || chunk_size > 256) {
+	// 	printf("ERROR: Chunk size must be in range [1, 256].\n");
+	// 	exit(EXIT_FAILURE);
+	// }
 
 	int cnt = 0;
 	for (int i = start_addr; i <= end_addr; i++) {
 		if (cnt % (16 * chunk_size) == 0) {
-			printf("\n\n    ");
+			printf("\n    ");
 			for (int i = 0; i < 16; i++) {
 				printf("    %c", HEX[i]);
 			}
@@ -287,4 +289,10 @@ void show_mem(Chip8 *c, uint16_t start_addr, uint16_t end_addr, int chunk_size) 
 	}
 
 	printf("\n");
+}
+
+void show_mem_near_addr(Chip8* c, uint16_t addr) {
+	int start = addr - 16 - addr % 16;
+	int end = addr + 31 - addr % 16;
+	show_mem(c, start, end, 5);
 }

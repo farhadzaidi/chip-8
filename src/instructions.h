@@ -46,8 +46,4 @@ void ld_I_b(Chip8 *c, uint16_t instr);
 void ld_I_from_reg(Chip8 *c, uint16_t instr);
 void ld_V_from_mem(Chip8 *c, uint16_t instr);
 
-
-
-
-
 #endif

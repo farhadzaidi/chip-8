@@ -4,6 +4,7 @@
 #include "instructions.h"
 #include "chip8.h"
 
+
 // GETTERS
 
 
@@ -64,8 +65,8 @@ void call_nnn(Chip8 *c, uint16_t instr) {
         exit(EXIT_FAILURE);
     }
 
-    uint8_t msb = (c->PC & MS_BYTE_16) >> 8;
-    uint8_t lsb = (c->PC & LS_BYTE_16);
+    uint8_t msb = (c->PC & 0xFF00) >> 8;
+    uint8_t lsb = (c->PC & 0x00FF);
     
     c->mem[c->SP] = msb;
     c->mem[c->SP + 1] = lsb;
@@ -223,41 +224,56 @@ void rnd(Chip8 *c, uint16_t instr) {
     c->V[x] = rnd_byte & nn;
 }
 
+// Draw n-byte sprite at (Vx, Vy)
 void drw(Chip8 *c, uint16_t instr) {
     uint8_t x = get_x(instr);
     uint8_t y = get_y(instr);
     uint8_t n = get_n(instr);
+
+    c->V[0xF] = 0;
 
     int x_coord = c->V[x];
     int y_coord = c->V[y];
 
     for (int i = 0; i < n; i++) {
         uint8_t sprite = c->mem[c->I + i];
+
         uint16_t y_offset = (y_coord + i) * 8; // byte offset
         uint16_t x_byte_offset = x_coord / 8;
-        uint16_t x_pixel_offset = x_coord % 8 - 1;
-
-        uint16_t byte_index = y_offset + x_byte_offset;
-        uint16_t byte_addr = FRAME_BUFFER_START_ADDR + byte_index;
+        uint16_t x_pixel_offset = x_coord % 8;
+        uint16_t byte_addr = FRAME_BUFFER_START_ADDR + y_offset + x_byte_offset;
 
         uint8_t sprite_mask = sprite >> x_pixel_offset;
         uint8_t *frame_byte = &c->mem[byte_addr];
         for (int j = 0; j < 8; j++) {
-            if (sprite_mask & MS_BIT_8) {
-                *frame_byte ^= MS_BIT_8 >> j;
+            if (sprite_mask & 0x80) {
+                *frame_byte ^= 0x80 >> j;
+                int new = *frame_byte & (0x80 >> j);
+                if (!new) {
+                    c->V[0xF] = 1;
+                }
+
             }
+
             sprite_mask <<= 1;
         }
 
         sprite_mask = sprite << (8 - x_pixel_offset);
         frame_byte += 1;
         for (int j = 0; j < 8; j++) {
-            if (sprite_mask & MS_BIT_8) {
-                *frame_byte ^= MS_BIT_8 >> j;
+            if (sprite_mask & 0x80) {
+                *frame_byte ^= 0x80 >> j;
+                int new = *frame_byte & (0x80 >> j);
+                if (!new) {
+                    c->V[0xF] = 1;
+                }
             }
+
             sprite_mask <<= 1;
         }
     }
+
+    c->update_screen = 1;
 }
 
 // Skip next instruction if key with the value Vx is pressed
@@ -329,7 +345,7 @@ void add_I_Vx(Chip8 *c, uint16_t instr) {
 // Load the memory address of the sprite that represents f into I
 void ld_I_f(Chip8 *c, uint16_t instr) {
     uint8_t x = get_x(instr);
-    c->I = FONTSET_START_ADDR + 5 * x;
+    c->I = FONTSET_START_ADDR + 5 * c->V[x];
 }
 
 // Load:

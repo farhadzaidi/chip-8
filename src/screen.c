@@ -1,3 +1,4 @@
+
 #include "screen.h"
 
 #define WINDOW_WIDTH 64
@@ -34,7 +35,7 @@ void update_screen(Chip8 *c, SDL_Renderer **renderer) {
 			// We can iterate through each bit in the byte by isolating the 
 			// most significant bit. Then, to get the next bit, we can left 
 			// shift the byte and repeat.
-			int pixel = (byte & MS_BIT_8) >> 7;
+			int pixel = (byte & 0x80) >> 7;
 			byte <<= 1;
 
 			if (pixel) {
