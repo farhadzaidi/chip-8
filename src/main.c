@@ -89,7 +89,6 @@ int main() {
 	init_sound();
 
 	SDL_Event e;
-	SDL_Scancode sc;
 	int cycles_since_timer_update = 0;
 
 	// Main loop

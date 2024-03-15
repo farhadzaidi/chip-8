@@ -10,4 +10,4 @@ include_directories(${SDL2_INCLUDE_DIRS})
 file(GLOB SOURCES "src/*.c")
 add_executable(main ${SOURCES})
 
-target_link_libraries(main ${SDL2_LIBRARIES})
+target_link_libraries(main ${SDL2_LIBRARIES} m)
