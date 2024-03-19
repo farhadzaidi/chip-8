@@ -5,7 +5,7 @@
 This project emulates the [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter in C. 
 
 From Wikipedia:
->CHIP-8 is an interpreted programming language, developed by Joseph Weisbecker made on his 1802 Microprocessor. It was initially used on the COSMAC VIP and Telmac 1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run on a CHIP-8 virtual machine. It was made to allow video games to be more easily programmed for these
+>CHIP-8 is an interpreted programming language, developed by Joseph Weisbecker made on his 1802 Microprocessor. It was initially used on the COSMAC VIP and Telmac 1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run on a CHIP-8 virtual machine. It was made to allow video games to be more easily programmed for these computers
 
 ## Usage:
 **Make sure you have [SDL2](https://www.libsdl.org/) installed on your machine.
