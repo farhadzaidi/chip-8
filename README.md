@@ -15,10 +15,12 @@ mkdir build
 cd build
 cmake ..
 make
-./main
+./main {PATH_TO_ROM} {CPU_CLOCK_RATE}
 ```
 
-The emulator comes with 6 different games (ROMS), but provides the option to load a custom ROM. Note that if you are loading a custom ROM, you must specifiy (in the following prompt) the CPU clock rate as different games run best at different Hz.
+The program requires as input two command line arguments: the absolute or relative path to the ROM and the clock rate (in Hz) at which the emulator should run.
+
+The clock rate is required since different ROMs run better at different clock rates (and there is no exact clock rate specification for the CHIP-8).
 
 
 ## License

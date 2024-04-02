@@ -9,78 +9,32 @@
 #include "screen.h"
 #include "sound.h"
 
-int main() {
-	// The user can pick from one of 6 included ROMS or load a custom ROM.
-	printf("\n------ CHIP-8 EMULATOR ------\n\n");
-	printf("Select a game from the following (1-6) or load a custom ROM (7):\n");
-	printf("1. Breakout\n");
-	printf("2. Connect 4\n");
-	printf("3. Pong\n");
-	printf("4. Space Invaders\n");
-	printf("5. Tetris\n");
-	printf("6. Tic Tac Toe\n");
-	printf("7. Custom ROM\n\n");
+int main(int argc, char *argv[]) {
+	// The program requires two inputs as command line arguments:
+		// 1. The absolute or relative path to the ROM
+		// 2. The clock rate (in Hz) at which the emulator should run
 
-	int rom;
-	printf("Selection: ");
-	scanf("%d", &rom);
+	// Note: the clock rate is required to be inputted by the user (as opposed
+	// to a fixed value), because the original CHIP-8 specification does not
+	// mention a specific clock rate and different games run better at different
+	// clock rates.
 
-	// Initialize system
-	Chip8 c;
-	init_sys(&c);
-
-	// Load ROM based on user selection.
-	// The chip-8 specification doesn't list the speed at which the processor
-	// should run, and since different games run best at different speeds, the
-	// speed of the processor will be set differently based on the selected game.
-	// Alternatively, if the user chooses to select a custom ROM, then they
-	// must set the processor speed.
-	char rom_path[500];
-	int cpu_clock_rate;
-	switch(rom) {
-		case 1:
-			strcpy(rom_path, "../roms/breakout.ch8");
-			cpu_clock_rate = 720;
-			break;
-		case 2:
-			strcpy(rom_path, "../roms/connect-4.ch8");
-			cpu_clock_rate = 120;
-			break;
-		case 3:
-			strcpy(rom_path, "../roms/pong.ch8");
-			cpu_clock_rate = 720;
-			break;
-		case 4:
-			strcpy(rom_path, "../roms/space-invaders.ch8");
-			cpu_clock_rate = 1080;
-			break;
-		case 5:
-			strcpy(rom_path, "../roms/tetris.ch8");
-			cpu_clock_rate = 720;
-			break;
-		case 6:
-			strcpy(rom_path, "../roms/tic-tac-toe.ch8");
-			cpu_clock_rate = 1080;
-			break;
-		case 7:
-			printf("Enter relative or absolute path to ROM: ");
-			scanf("%s", rom_path);
-			printf("\nSet CPU clock rate: ");
-			scanf("%d", &cpu_clock_rate);
-			break;
-		default:
-			printf("ERROR: Invalid selection.\n");
-			exit(EXIT_FAILURE);
+	if (argc < 3) {
+		printf("ERROR: Missing command line arguments.\n");
+		return EXIT_FAILURE;
 	}
 
 	// The emulator delay (in microseconds) is used to slow down the execution 
 	// of the main loop to emulate the processor clock speed.
-	const int EMU_DELAY = 1. / cpu_clock_rate * 1000000;
+	const int EMU_DELAY = 1. / atoi(argv[2]) * 1000000;
 	
 	// This is the number of cycles it should take to decrement the timers by 1.
-	const int TIMER_UPDATE_CYCLES = cpu_clock_rate / 60;
+	const int TIMER_UPDATE_CYCLES = atoi(argv[2]) / 60;
 
-	load_rom(&c, rom_path);
+	// Initialize the emulator and load the ROM
+	Chip8 c;
+	init_sys(&c);
+	load_rom(&c, argv[1]);
 
 	// Initialize display and sound system
 	SDL_Window *window = NULL;
@@ -101,7 +55,7 @@ int main() {
 			} else if (e.type == SDL_KEYDOWN) {
 				if (e.key.keysym.sym == SDLK_ESCAPE) {
 					init_sys(&c);
-					load_rom(&c, rom_path);
+					load_rom(&c, argv[1]);
 					update_screen(&c, &renderer);
 				}
 			}
